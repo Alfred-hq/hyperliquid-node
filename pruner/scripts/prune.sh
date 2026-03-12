@@ -28,8 +28,8 @@ for dir in "${EXCLUDES[@]}"; do
 done
 
 # Delete data older than 48 hours = 60 minutes * 48 hours
-HOURS=$((60*48))
-find "$DATA_PATH" -mindepth 1 "${PRUNE_ARGS[@]}" -type f -mmin +$HOURS -exec rm {} +
+MINUTES=$((10))
+find "$DATA_PATH" -mindepth 1 "${PRUNE_ARGS[@]}" -type f -mmin +$MINUTES -exec rm {} +
 
 # Get directory size after pruning
 size_after=$(du -sh "$DATA_PATH" | cut -f1)

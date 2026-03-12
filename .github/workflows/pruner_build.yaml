@@ -1,0 +1,47 @@
+name: Build and Push Pruner Image
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'pruner/**'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  REGISTRY_REPOSITORY: pruner-hl
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: '0'  # without this, ignite fails.
+
+      - name: Log in to Docker Hub
+        uses:  docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_PASSWORD }}
+
+      - name: Build and Push Docker image
+        id: build-image
+        run: |
+          commit_hash=$(git rev-parse --short=7 HEAD)
+          image_name=${{ env.REGISTRY }}/alfred-hq/${{ env.REGISTRY_REPOSITORY }}
+      
+          # Build the image with commit hash tag
+          docker build \
+            --platform linux/amd64 \
+            -t $image_name:$commit_hash \
+            -t $image_name:latest \
+            -f pruner/Dockerfile ./pruner
+      
+          # Push both tags
+          docker push $image_name:$commit_hash
+          docker push $image_name:latest
